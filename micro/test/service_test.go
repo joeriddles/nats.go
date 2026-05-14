@@ -1021,6 +1021,58 @@ func TestContextHandler(t *testing.T) {
 	}
 }
 
+func TestAddEndpoint_Options(t *testing.T) {
+	s := RunServerOnPort(-1)
+	defer s.Shutdown()
+
+	nc, err := nats.Connect(s.ClientURL())
+	if err != nil {
+		t.Fatalf("Expected to connect to server, got %v", err)
+	}
+	defer nc.Close()
+
+	config := micro.Config{
+		Name:    "test_service",
+		Version: "0.1.0",
+	}
+
+	srv, err := micro.AddService(nc, config)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+	defer srv.Stop()
+
+	handler := micro.HandlerFunc(func(req micro.Request) {
+		req.Respond([]byte("OK"))
+	})
+
+	err = srv.AddEndpoint("test", micro.HandlerFunc(handler),
+		micro.WithEndpointMetadata(map[string]string{
+			"foo":   "bar",
+			"hello": "world",
+		}),
+		// override value from WithEndpointMetadata
+		micro.WithEndpointMetadataKey("foo", "baz"),
+	)
+	if err != nil {
+		t.Fatalf("Error adding endpoint: %v", err)
+	}
+
+	// Verify endpoint was created with metadata
+	info := srv.Info()
+	if len(info.Endpoints) != 1 {
+		t.Fatalf("Expected 1 endpoint, got %d", len(info.Endpoints))
+	}
+
+	endpoint := info.Endpoints[0]
+	if endpoint.Metadata["foo"] != "baz" {
+		t.Fatalf(`Expected "foo" to equal "baz", got %q`, endpoint.Metadata["foo"])
+	}
+	if endpoint.Metadata["hello"] != "world" {
+		t.Fatalf(`Expected "hello" to equal "world", got %q`, endpoint.Metadata["foo"])
+	}
+}
+
 func TestAddEndpoint_Concurrency(t *testing.T) {
 	s := RunServerOnPort(-1)
 	defer s.Shutdown()

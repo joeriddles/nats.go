@@ -965,6 +965,13 @@ func WithEndpointMetadata(metadata map[string]string) EndpointOpt {
 	}
 }
 
+func WithEndpointMetadataKey(key, value string) EndpointOpt {
+	return func(e *endpointOpts) error {
+		e.metadata[key] = value
+		return nil
+	}
+}
+
 func WithEndpointQueueGroup(queueGroup string) EndpointOpt {
 	return func(e *endpointOpts) error {
 		e.queueGroup = queueGroup
