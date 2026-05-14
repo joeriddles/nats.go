@@ -424,9 +424,6 @@ func (s *service) AddEndpointWithOptions(name string, handler Handler, options E
 }
 
 func addEndpoint(s *service, name, subject string, handler Handler, metadata map[string]string, queueGroup string, noQueue bool, msgLimit, bytesLimit int) error {
-	if subject == "" {
-		subject = name
-	}
 	if !nameRegexp.MatchString(name) {
 		return fmt.Errorf("%w: invalid endpoint name", ErrConfigValidation)
 	}
