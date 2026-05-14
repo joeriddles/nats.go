@@ -967,6 +967,9 @@ func WithEndpointMetadata(metadata map[string]string) EndpointOpt {
 
 func WithEndpointMetadataKey(key, value string) EndpointOpt {
 	return func(e *endpointOpts) error {
+		if e.metadata == nil {
+			e.metadata = map[string]string{}
+		}
 		e.metadata[key] = value
 		return nil
 	}

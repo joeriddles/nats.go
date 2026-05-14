@@ -1046,30 +1046,65 @@ func TestAddEndpoint_Options(t *testing.T) {
 		req.Respond([]byte("OK"))
 	})
 
-	err = srv.AddEndpoint("test", micro.HandlerFunc(handler),
-		micro.WithEndpointMetadata(map[string]string{
-			"foo":   "bar",
-			"hello": "world",
-		}),
-		// override value from WithEndpointMetadata
-		micro.WithEndpointMetadataKey("foo", "baz"),
-	)
-	if err != nil {
-		t.Fatalf("Error adding endpoint: %v", err)
+	tests := []struct {
+		name     string
+		options  []micro.EndpointOpt
+		expected map[string]string
+	}{
+		{
+			name: "WithEndpointMetadata and WithEndpointMetadataKey",
+			options: []micro.EndpointOpt{
+				micro.WithEndpointMetadata(map[string]string{
+					"hello": "world",
+					"foo":   "bar",
+				}),
+				// override value from WithEndpointMetadata
+				micro.WithEndpointMetadataKey("foo", "baz"),
+			},
+			expected: map[string]string{
+				"hello": "world",
+				"foo":   "baz",
+			},
+		},
+		{
+			name: "WithEndpointMetadataKey",
+			options: []micro.EndpointOpt{
+				micro.WithEndpointMetadataKey("foo", "baz"),
+			},
+			expected: map[string]string{
+				"foo": "baz",
+			},
+		},
 	}
+	for i, test := range tests {
+		name := fmt.Sprintf("test%v", i+1)
+		err = srv.AddEndpoint(name, micro.HandlerFunc(handler), test.options...)
+		if err != nil {
+			t.Fatalf("Error adding endpoint: %v", err)
+		}
 
-	// Verify endpoint was created with metadata
-	info := srv.Info()
-	if len(info.Endpoints) != 1 {
-		t.Fatalf("Expected 1 endpoint, got %d", len(info.Endpoints))
-	}
+		// Verify endpoint was created with metadata
+		info := srv.Info()
 
-	endpoint := info.Endpoints[0]
-	if endpoint.Metadata["foo"] != "baz" {
-		t.Fatalf(`Expected "foo" to equal "baz", got %q`, endpoint.Metadata["foo"])
-	}
-	if endpoint.Metadata["hello"] != "world" {
-		t.Fatalf(`Expected "hello" to equal "world", got %q`, endpoint.Metadata["hello"])
+		var endpoint *micro.EndpointInfo
+		for _, ep := range info.Endpoints {
+			if ep.Name == name {
+				endpoint = &ep
+				break
+			}
+		}
+		if endpoint == nil {
+			t.Fatalf("Expected endpoint %q to exist", name)
+		}
+
+		if len(test.expected) != len(endpoint.Metadata) {
+			t.Fatalf("Expected %v metadata values, got %v", len(test.expected), len(endpoint.Metadata))
+		}
+		for key, value := range test.expected {
+			if value != endpoint.Metadata[key] {
+				t.Fatalf(`Expected %q to equal %q, got %q`, key, value, endpoint.Metadata[key])
+			}
+		}
 	}
 }
 
