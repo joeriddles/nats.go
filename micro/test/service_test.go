@@ -1097,13 +1097,8 @@ func TestAddEndpoint_Options(t *testing.T) {
 			t.Fatalf("Expected endpoint %q to exist", name)
 		}
 
-		if len(test.expected) != len(endpoint.Metadata) {
-			t.Fatalf("Expected %v metadata values, got %v", len(test.expected), len(endpoint.Metadata))
-		}
-		for key, value := range test.expected {
-			if value != endpoint.Metadata[key] {
-				t.Fatalf(`Expected %q to equal %q, got %q`, key, value, endpoint.Metadata[key])
-			}
+		if !reflect.DeepEqual(test.expected, endpoint.Metadata) {
+			t.Fatalf("want: %v; got: %v", test.expected, endpoint.Metadata)
 		}
 	}
 }
