@@ -1069,7 +1069,7 @@ func TestAddEndpoint_Options(t *testing.T) {
 		t.Fatalf(`Expected "foo" to equal "baz", got %q`, endpoint.Metadata["foo"])
 	}
 	if endpoint.Metadata["hello"] != "world" {
-		t.Fatalf(`Expected "hello" to equal "world", got %q`, endpoint.Metadata["foo"])
+		t.Fatalf(`Expected "hello" to equal "world", got %q`, endpoint.Metadata["hello"])
 	}
 }
 
