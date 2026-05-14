@@ -33,6 +33,10 @@ type (
 		// AddEndpoint registers endpoint with given name on a specific subject.
 		AddEndpoint(string, Handler, ...EndpointOpt) error
 
+		// AddEndpointWithOptions registers endpoint with given name and options on
+		// a specific subject.
+		AddEndpointWithOptions(string, Handler, EndpointOpts) error
+
 		// AddGroup returns a Group interface, allowing for more complex endpoint topologies.
 		// A group can be used to register endpoints with given prefix.
 		AddGroup(string, ...GroupOpt) Group
